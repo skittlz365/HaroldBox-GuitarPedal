@@ -2,12 +2,86 @@
 <html>
 <head>
   <title>Guitar Pedal Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 40px; }
-    button { padding: 15px 30px; font-size: 18px; margin: 10px; cursor: pointer; border-radius: 8px; border: none; }
-    .connect { background: #2196F3; color: white; }
-    .effect { background: #333; color: white; border: 2px solid #555; }
-    .active { background: #4CAF50; border-color: #81C784; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: #121212; 
+      color: #ffffff; 
+      text-align: center; 
+      padding: 20px; 
+      margin: 0;
+    }
+  
+    h1 { font-size: 24px; margin-bottom: 15px; }
+  
+    /* Big, touch-friendly connection button */
+    .connect { 
+      background: #2196F3; 
+      color: white; 
+      padding: 16px 24px; 
+      font-size: 18px; 
+      font-weight: bold;
+      border-radius: 12px; 
+      border: none; 
+      width: 100%;
+      max-width: 350px;
+      margin-bottom: 20px;
+    }
+  
+    /* Effect toggle buttons layout */
+    .effect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 2 buttons per row */
+      gap: 12px;
+      max-width: 350px;
+      margin: 0 auto 20px auto;
+    }
+  
+    button.effect-btn { 
+      padding: 18px; 
+      font-size: 16px; 
+      font-weight: bold;
+      cursor: pointer; 
+      border-radius: 10px; 
+      border: none; 
+      background: #2a2a2a; 
+      color: white; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+  
+    button.effect-btn:active { background: #444; }
+  
+    /* Expanded slider containers for easy thumb sliding */
+    .slider-container { 
+      margin: 15px auto; 
+      max-width: 350px; 
+      background: #1e1e1e; 
+      padding: 16px; 
+      border-radius: 12px; 
+      text-align: left;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+  
+    .slider-container label {
+      font-size: 16px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 8px;
+      color: #e0e0e0;
+    }
+  
+    /* Make range inputs tall and thick so they are easy to grab */
+    input[type=range] { 
+      width: 100%; 
+      height: 8px;
+      background: #444;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer; 
+    }
+  
+    #status { font-size: 14px; color: #aaa; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -16,27 +90,31 @@
   <button class="connect" onclick="connectBLE()">🔗 Connect to Pedal</button>
   <p id="status">Status: Disconnected</p>
 
-  <hr style="border-color: #333; margin: 30px 0;">
+  <hr style="border-color: #333; margin: 20px 0;">
 
-  <button class="effect" onclick="sendCommand('CLEAN')">Clean Bypass</button>
-  <button class="effect" onclick="sendCommand('OVERDRIVE')">Overdrive</button>
-  <button class="effect" onclick="sendCommand('DISTORTION')">Distortion</button>
-  <button class="effect" onclick="sendCommand('AUTOWAH')">Auto-Wah</button>
+  <h3>Effects</h3>
+  <div class="effect-grid">
+    <button class="effect-btn" onclick="sendCommand('CLEAN')">Clean</button>
+    <button class="effect-btn" onclick="sendCommand('OVERDRIVE')">Overdrive</button>
+    <button class="effect-btn" onclick="sendCommand('DISTORTION')">Distortion</button>
+    <button class="effect-btn" onclick="sendCommand('AUTOWAH')">Auto-Wah</button>
+  </div>
 
+  <h3>Parameters</h3>
   <div class="slider-container">
     <label>Distortion Gain: <span id="gainVal">50</span></label>
-    <input type="range" id="gainSlider" min="0" max="100" value="50" oninput="updateSlider('GAIN', this.value, 'gainVal')">
+    <input type="range" min="0" max="100" value="50" oninput="updateSlider('GAIN', this.value, 'gainVal')">
   </div>
 
   <div class="slider-container">
     <label>Wah Sensitivity: <span id="wahVal">50</span></label>
-    <input type="range" id="wahSlider" min="0" max="100" value="50" oninput="updateSlider('WAH', this.value, 'wahVal')">
+    <input type="range" min="0" max="100" value="50" oninput="updateSlider('WAH', this.value, 'wahVal')">
   </div>
-  
+
   <div class="slider-container">
-    <label>Reverb Level: <span id="reverbVal">50</span></label>
-    <input type="range" id="reverbSlider" min="0" max="100" value="50" oninput="updateSlider('REVERB', this.value, 'reverbVal')">
-  </div> 
+    <label>Reverb Mix: <span id="revVal">50</span></label>
+    <input type="range" min="0" max="100" value="50" oninput="updateSlider('REV_MIX', this.value, 'revVal')">
+  </div>
 
   <script>
     // These UUIDs MUST match the ones in your ESP32 code!
