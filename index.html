@@ -95,7 +95,7 @@
   <h3>Effects</h3>
   <div class="effect-grid">
     <button class="effect-btn" onclick="sendCommand('CLEAN')">Clean</button>
-    <button class="effect-btn" onclick="sendCommand('OVERDRIVE')">Overdrive</button>
+    <button class="effect-btn" onclick="sendCommand('TONE')">Tone</button>
     <button class="effect-btn" onclick="sendCommand('DISTORTION')">Distortion</button>
     <button class="effect-btn" onclick="sendCommand('AUTOWAH')">Auto-Wah</button>
   </div>
@@ -112,8 +112,8 @@
   </div>
 
   <div class="slider-container">
-    <label>Reverb Mix: <span id="revVal">50</span></label>
-    <input type="range" min="0" max="100" value="50" oninput="updateSlider('REV_MIX', this.value, 'revVal')">
+    <label>Tone: <span id="revVal">50</span></label>
+    <input type="range" min="0" max="100" value="50" oninput="updateSlider('TONE', this.value, 'revVal')">
   </div>
 
   <script>
