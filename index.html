@@ -19,22 +19,22 @@
 
   <hr style="border-color: #333; margin: 30px 0;">
 
-  <!-- Presets mapping directly to ESP32 string command parser -->
-  <button class="effect" onclick="sendPreset('CLEAN', 0.0, 0.5, 0.0)">Clean Bypass</button>
-  <button class="effect" onclick="sendPreset('OVERDRIVE', 0.4, 0.6, 0.0)">Overdrive</button>
-  <button class="effect" onclick="sendPreset('DISTORTION', 1.0, 0.8, 0.0)">Distortion</button>
-  <button class="effect" onclick="sendPreset('AUTOWAH', 0.1, 0.5, 0.7)">Auto-Wah</button>
+  <!-- Presets mapping cleanly to ESP32 BLE commands -->
+  <button class="effect" onclick="setPreset(0.0, 0.5, 0.0)">Clean Bypass</button>
+  <button class="effect" onclick="setPreset(0.7, 0.5, 0.0)">Overdrive</button>
+  <button class="effect" onclick="setPreset(1.0, 0.8, 0.0)">Distortion</button>
+  <button class="effect" onclick="setPreset(0.2, 0.5, 0.8)">Filter Sweep / Wah</button>
 
   <div class="slider-container">
-    <label>Drive / Gain: <span id="gainVal">0.0</span></label><br>
-    <input type="range" id="gainSlider" min="0" max="1" step="0.01" value="0.0" oninput="updateSlider('DRIVE', this.value, 'gainVal')">
+    <label>Drive / Gain: <span id="gainVal">0.5</span></label><br>
+    <input type="range" id="gainSlider" min="0" max="1" step="0.01" value="0.5" oninput="updateSlider('DRIVE', this.value, 'gainVal')">
   </div>
 
   <div class="slider-container">
-    <label>Wah Sensitivity: <span id="wahVal">0.0</span></label><br>
+    <label>Wah / Filter Sweep: <span id="wahVal">0.0</span></label><br>
     <input type="range" id="wahSlider" min="0" max="1" step="0.01" value="0.0" oninput="updateSlider('WAH', this.value, 'wahVal')">
   </div>
-  
+ 
   <div class="slider-container">
     <label>Tone: <span id="toneVal">0.5</span></label><br>
     <input type="range" id="toneSlider" min="0" max="1" step="0.01" value="0.5" oninput="updateSlider('TONE', this.value, 'toneVal')">
@@ -70,12 +70,10 @@
       document.getElementById(spanID).innerText = val;
       if (!pedalCharacteristic) return;
       const encoder = new TextEncoder();
-      // Sends format like "DRIVE:0.75"
       await pedalCharacteristic.writeValue(encoder.encode(prefix + ":" + val));
     }
 
-    async function sendPreset(presetName, drive, tone, wah) {
-      // Update UI Sliders to match preset values
+    async function setPreset(drive, tone, wah) {
       document.getElementById('gainSlider').value = drive;
       document.getElementById('gainVal').innerText = drive;
       document.getElementById('toneSlider').value = tone;
@@ -83,11 +81,15 @@
       document.getElementById('wahSlider').value = wah;
       document.getElementById('wahVal').innerText = wah;
 
-      // Send the preset command string to ESP32 (e.g. "OVERDRIVE", "CLEAN")
       if (!pedalCharacteristic) return;
       const encoder = new TextEncoder();
-      await pedalCharacteristic.writeValue(encoder.encode(presetName));
-      console.log("Sent Preset:", presetName);
+      
+      // Sequentially send parameters with safe timing intervals for BLE transmission
+      await pedalCharacteristic.writeValue(encoder.encode("DRIVE:" + drive));
+      await new Promise(r => setTimeout(r, 60)); 
+      await pedalCharacteristic.writeValue(encoder.encode("TONE:" + tone));
+      await new Promise(r => setTimeout(r, 60));
+      await pedalCharacteristic.writeValue(encoder.encode("WAH:" + wah));
     }
   </script>
 </body>
