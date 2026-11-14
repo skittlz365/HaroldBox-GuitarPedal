@@ -19,11 +19,11 @@
 
   <hr style="border-color: #333; margin: 30px 0;">
 
-  <!-- Presets mapping cleanly to ESP32 BLE commands -->
+  <!-- Presets mapping to your updated Faust DSP parameters -->
   <button class="effect" onclick="setPreset(0.0, 0.5, 0.0)">Clean Bypass</button>
   <button class="effect" onclick="setPreset(0.7, 0.5, 0.0)">Overdrive</button>
   <button class="effect" onclick="setPreset(1.0, 0.8, 0.0)">Distortion</button>
-  <button class="effect" onclick="setPreset(0.2, 0.5, 0.8)">Filter Sweep / Wah</button>
+  <button class="effect" onclick="setPreset(0.0, 0.5, 0.8)">Auto-Wah</button>
 
   <div class="slider-container">
     <label>Drive / Gain: <span id="gainVal">0.5</span></label><br>
@@ -31,7 +31,7 @@
   </div>
 
   <div class="slider-container">
-    <label>Wah / Filter Sweep: <span id="wahVal">0.0</span></label><br>
+    <label>Wah Sensitivity: <span id="wahVal">0.0</span></label><br>
     <input type="range" id="wahSlider" min="0" max="1" step="0.01" value="0.0" oninput="updateSlider('WAH', this.value, 'wahVal')">
   </div>
  
@@ -70,10 +70,12 @@
       document.getElementById(spanID).innerText = val;
       if (!pedalCharacteristic) return;
       const encoder = new TextEncoder();
+      // Sends format like "DRIVE:0.75" or "WAH:0.8"
       await pedalCharacteristic.writeValue(encoder.encode(prefix + ":" + val));
     }
 
     async function setPreset(drive, tone, wah) {
+      // Update UI Sliders locally
       document.getElementById('gainSlider').value = drive;
       document.getElementById('gainVal').innerText = drive;
       document.getElementById('toneSlider').value = tone;
@@ -81,10 +83,10 @@
       document.getElementById('wahSlider').value = wah;
       document.getElementById('wahVal').innerText = wah;
 
+      // Send to ESP32 with safe queuing intervals to prevent BLE buffer drops
       if (!pedalCharacteristic) return;
       const encoder = new TextEncoder();
       
-      // Sequentially send parameters with safe timing intervals for BLE transmission
       await pedalCharacteristic.writeValue(encoder.encode("DRIVE:" + drive));
       await new Promise(r => setTimeout(r, 60)); 
       await pedalCharacteristic.writeValue(encoder.encode("TONE:" + tone));
